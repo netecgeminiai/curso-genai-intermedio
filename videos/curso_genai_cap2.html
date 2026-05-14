@@ -28,7 +28,8 @@
         h1.title { color: var(--text-main); font-size: 2.5rem; margin-bottom: 10px; }
         h1.title span { color: var(--text-accent); }
         .bullets { font-size: 1.4rem; line-height: 1.8; color: #8b949e; }
-        .bullets p { margin: 15px 0; display: flex; align-items: flex-start; }
+        .bullets p { margin: 15px 0; display: flex; align-items: flex-start; opacity: 0; transform: translateY(10px); transition: opacity 0.5s, transform 0.5s; }
+        .bullets p.visible { opacity: 1; transform: translateY(0); }
         .bullets p::before { content: '>'; color: var(--accent-green); font-family: var(--code-font); margin-right: 15px; font-weight: bold; }
         .code-block { background-color: #010409; padding: 20px; border-radius: 6px; font-family: var(--code-font); font-size: 1.1rem; color: #e6edf3; width: 100%; box-sizing: border-box; }
         .keyword { color: #ff7b72; }
@@ -77,21 +78,19 @@
                 </div>
             </div>
             <div class="right-panel">
-                <div class="code-block">
-<span class="keyword">from</span> openai <span class="keyword">import</span> OpenAI
-<span class="keyword">import</span> os
+                <div class="code-block typewriter-target" data-code="from openai import OpenAI
+import os
 
-client = OpenAI(api_key=os.getenv(<span class="string">"OPENAI_API_KEY"</span>))
+client = OpenAI(api_key=os.getenv(&quot;OPENAI_API_KEY&quot;))
 
 response = client.chat.completions.create(
-  model=<span class="string">"gpt-4o-mini"</span>,
-  temperature=<span class="string">0.0</span>, <span class="comment"># Maxima precision</span>
+  model=&quot;gpt-4o-mini&quot;,
+  temperature=0.0, # Maxima precision
   messages=[
-    {<span class="string">"role"</span>: <span class="string">"system"</span>, <span class="string">"content"</span>: <span class="string">"Eres un experto en Python."</span>},
-    {<span class="string">"role"</span>: <span class="string">"user"</span>, <span class="string">"content"</span>: <span class="string">"Explica FastAPI."</span>}
+    {&quot;role&quot;: &quot;system&quot;, &quot;content&quot;: &quot;Eres un experto en Python.&quot;},
+    {&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;Explica FastAPI.&quot;}
   ]
-)
-                </div>
+)">
             </div>
         </div>
 
@@ -105,23 +104,21 @@ response = client.chat.completions.create(
                 </div>
             </div>
             <div class="right-panel">
-                <div class="code-block">
-<span class="keyword">from</span> pydantic <span class="keyword">import</span> BaseModel
-<span class="keyword">from</span> tenacity <span class="keyword">import</span> retry, wait_exponential
+                <div class="code-block typewriter-target" data-code="from pydantic import BaseModel
+from tenacity import retry, wait_exponential
 
-<span class="comment"># Forzar esquema JSON de salida</span>
-<span class="keyword">class</span> UserProfile(BaseModel):
+# Forzar esquema JSON de salida
+class UserProfile(BaseModel):
     name: str
     age: int
     is_active: bool
 
-<span class="comment"># Reintento automatico ante Rate Limits</span>
-<span class="keyword">@retry</span>(wait=wait_exponential(multiplier=1, max=10))
-<span class="keyword">def</span> call_api_safely(prompt):
-    <span class="keyword">return</span> client.beta.chat.completions.parse(
+# Reintento automatico ante Rate Limits
+@retry(wait=wait_exponential(multiplier=1, max=10))
+def call_api_safely(prompt):
+    return client.beta.chat.completions.parse(
         response_format=UserProfile
-    )
-                </div>
+    )">
             </div>
         </div>
 
@@ -156,24 +153,22 @@ response = client.chat.completions.create(
                 </div>
             </div>
             <div class="right-panel">
-                <div class="code-block">
-<span class="keyword">class</span> Vulnerabilidad(BaseModel):
+                <div class="code-block typewriter-target" data-code="class Vulnerabilidad(BaseModel):
     linea: int
     severidad: str
     sugerencia_fix: str
 
-<span class="keyword">class</span> ReporteAuditoria(BaseModel):
+class ReporteAuditoria(BaseModel):
     es_seguro: bool
     vulnerabilidades: List[Vulnerabilidad]
 
-<span class="comment"># Output forzado por IA:</span>
-<span class="comment"># {</span>
-<span class="comment">#   "es_seguro": false,</span>
-<span class="comment">#   "vulnerabilidades": [</span>
-<span class="comment">#     {"linea": 14, "severidad": "ALTA", ...}</span>
-<span class="comment">#   ]</span>
-<span class="comment"># }</span>
-                </div>
+# Output forzado por IA:
+# {
+#   &quot;es_seguro&quot;: false,
+#   &quot;vulnerabilidades&quot;: [
+#     {&quot;linea&quot;: 14, &quot;severidad&quot;: &quot;ALTA&quot;, ...}
+#   ]
+# }">
             </div>
         </div>
     </div>
@@ -201,6 +196,42 @@ response = client.chat.completions.create(
         const btnPlayPause = document.getElementById('btn-play-pause'); const timeCurrent = document.getElementById('time-current'); const progressFill = document.getElementById('progress-fill'); const chapterList = document.getElementById('chapter-list');
         function formatTime(seconds) { if (isNaN(seconds)) return "00:00"; const m = Math.floor(seconds / 60).toString().padStart(2, '0'); const s = Math.floor(seconds % 60).toString().padStart(2, '0'); return `${m}:${s}`; }
         
+        
+        let typewriterIntervals = [];
+
+        function colorizeCode(code) {
+            return code.replace(/import|from|as|with|open|for|in|print|return|def|if|else|class|async|await/g, '<span class="keyword">$&</span>')
+                       .replace(/".*?"/g, '<span class="string">$&</span>')
+                       .replace(/#.*/g, '<span class="comment">$&</span>')
+                       .replace(/@\w+(\.\w+)*(\(\))?/g, '<span class="decorator">$&</span>');
+        }
+
+        function triggerTypewriter(slideEl) {
+            typewriterIntervals.forEach(clearTimeout);
+            typewriterIntervals = [];
+            const target = slideEl.querySelector('.typewriter-target');
+            if (target) {
+                target.innerHTML = '';
+                const code = target.getAttribute('data-code');
+                let i = 0;
+                let currentHTML = "";
+                let initialDelay = setTimeout(() => {
+                    function typeChar() {
+                        if (i < code.length) {
+                            currentHTML += code.charAt(i);
+                            target.innerHTML = colorizeCode(currentHTML) + '<span style="border-right: 2px solid #3fb950;"></span>';
+                            i++;
+                            typewriterIntervals.push(setTimeout(typeChar, 15));
+                        } else {
+                            target.innerHTML = colorizeCode(currentHTML);
+                        }
+                    }
+                    typeChar();
+                }, 2000);
+                typewriterIntervals.push(initialDelay);
+            }
+        }
+    
         window.onload = () => { 
             sequence.forEach((sec, idx) => { 
                 let div = document.createElement('div'); 
@@ -228,8 +259,8 @@ response = client.chat.completions.create(
             if (oldAudio) { oldAudio.pause(); oldAudio.currentTime = 0; } 
             
             currentIndex = index; 
-            document.querySelectorAll('.slide').forEach(el => el.classList.remove('active')); 
-            document.getElementById(`slide-${sequence[currentIndex].id}`).classList.add('active'); 
+            document.querySelectorAll('.slide').forEach(el => { el.classList.remove('active'); el.querySelectorAll('.bullets p').forEach(b => b.classList.remove('visible')); }); 
+            const activeSlide = document.getElementById(`slide-${sequence[currentIndex].id}`); activeSlide.classList.add('active'); triggerTypewriter(activeSlide); 
             document.querySelectorAll('.chapter-item').forEach(el => el.classList.remove('active')); 
             document.getElementById(`chapter-btn-${currentIndex}`).classList.add('active'); 
             
@@ -258,7 +289,17 @@ response = client.chat.completions.create(
         }
 
         function saltarASeccion(index) { if (!isCourseStarted) return; isPlaying = true; btnPlayPause.innerText = '⏸'; reproducirSeccion(index); }
-        function iniciarReloj() { updateInterval = setInterval(() => { if (!isPlaying) return; const audio = document.getElementById(`audio-${sequence[currentIndex].id}`); if (audio) { timeCurrent.innerText = formatTime(audio.currentTime); const dur = isNaN(audio.duration) ? 1 : audio.duration; progressFill.style.width = (audio.currentTime / dur * 100) + '%'; } }, 100); }
+        function iniciarReloj() { updateInterval = setInterval(() => { if (!isPlaying) return; const audio = document.getElementById(`audio-${sequence[currentIndex].id}`); if (audio) { timeCurrent.innerText = formatTime(audio.currentTime); const dur = isNaN(audio.duration) ? 1 : audio.duration; progressFill.style.width = (audio.currentTime / dur * 100) + '%'; 
+                    }
+                    const activeSlide = document.getElementById(`slide-${sequence[currentIndex].id}`);
+                    if(activeSlide) {
+                        activeSlide.querySelectorAll('.bullets p').forEach((b, idx) => {
+                            if ((audio ? audio.currentTime : 0) >= (idx * 5 + 2)) {
+                                b.classList.add('visible');
+                            }
+                        });
+                    }
+         }, 100); }
         
         
         document.getElementById('next-chapter-btn').addEventListener('click', () => {

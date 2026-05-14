@@ -28,7 +28,8 @@
         h1.title { color: var(--text-main); font-size: 2.5rem; margin-bottom: 10px; }
         h1.title span { color: var(--text-accent); }
         .bullets { font-size: 1.4rem; line-height: 1.8; color: #8b949e; }
-        .bullets p { margin: 15px 0; display: flex; align-items: flex-start; }
+        .bullets p { margin: 15px 0; display: flex; align-items: flex-start; opacity: 0; transform: translateY(10px); transition: opacity 0.5s, transform 0.5s; }
+        .bullets p.visible { opacity: 1; transform: translateY(0); }
         .bullets p::before { content: '>'; color: var(--accent-green); font-family: var(--code-font); margin-right: 15px; font-weight: bold; }
         .code-block { background-color: #010409; padding: 20px; border-radius: 6px; font-family: var(--code-font); font-size: 1.1rem; color: #e6edf3; width: 100%; box-sizing: border-box; }
         .keyword { color: #ff7b72; }
@@ -98,16 +99,14 @@
                 </div>
             </div>
             <div class="right-panel">
-                <div class="code-block" style="text-align: center;">
-                    <span style="color:#ff7b72;">[ User: "Cancela mi suscripción" ]</span> <br>⬇<br>
-                    <span style="color:#3fb950;">[ Agente: Piensa ]</span> "Debo usar la Tool StripeAPI"<br>
-                    ⬇<br>
-                    <span style="color:#58a6ff;">[ Agente: Action ]</span> Llama a `cancelar_sub(id)`<br>
-                    ⬇<br>
-                    <span style="color:#8b949e;">[ Python: Ejecuta API Stripe ]</span> Devuelve "OK"<br>
-                    ⬇<br>
-                    <span style="color:#3fb950;">[ Agente: Respuesta final ]</span> "Suscripción cancelada."
-                </div>
+                <div class="code-block typewriter-target" data-code="[ User: &quot;Cancela mi suscripción&quot; ] ⬇
+                    [ Agente: Piensa ] &quot;Debo usar la Tool StripeAPI&quot;
+                    ⬇
+                    [ Agente: Action ] Llama a `cancelar_sub(id)`
+                    ⬇
+                    [ Python: Ejecuta API Stripe ] Devuelve &quot;OK&quot;
+                    ⬇
+                    [ Agente: Respuesta final ] &quot;Suscripción cancelada.&quot;">
             </div>
         </div>
 
@@ -123,22 +122,20 @@
                 </div>
             </div>
             <div class="right-panel">
-                <div class="code-block">
-<span class="keyword">import</span> sqlite3
-<span class="keyword">from</span> langchain_core.tools <span class="keyword">import</span> tool
+                <div class="code-block typewriter-target" data-code="import sqlite3
+from langchain_core.tools import tool
 
-<span class="keyword">@tool</span>
-<span class="keyword">def</span> ejecutar_sql(query: str) -> str:
-    <span class="comment">"""</span>
-<span class="comment">    Ejecuta una consulta SQL en la BD. </span>
-<span class="comment">    La tabla 'ventas' tiene: id, producto, precio.</span>
-<span class="comment">    NUNCA uses comandos DELETE o UPDATE.</span>
-<span class="comment">    """</span>
-    conn = sqlite3.connect(<span class="string">"ventas.db"</span>)
+@tool
+def ejecutar_sql(query: str) -> str:
+    &quot;&quot;&quot;
+    Ejecuta una consulta SQL en la BD. 
+    La tabla 'ventas' tiene: id, producto, precio.
+    NUNCA uses comandos DELETE o UPDATE.
+    &quot;&quot;&quot;
+    conn = sqlite3.connect(&quot;ventas.db&quot;)
     cursor = conn.cursor()
     cursor.execute(query)
-    <span class="keyword">return</span> str(cursor.fetchall())
-                </div>
+    return str(cursor.fetchall())">
             </div>
         </div>
     </div>
@@ -164,6 +161,42 @@
         const btnPlayPause = document.getElementById('btn-play-pause'); const timeCurrent = document.getElementById('time-current'); const progressFill = document.getElementById('progress-fill'); const chapterList = document.getElementById('chapter-list');
         function formatTime(seconds) { if (isNaN(seconds)) return "00:00"; const m = Math.floor(seconds / 60).toString().padStart(2, '0'); const s = Math.floor(seconds % 60).toString().padStart(2, '0'); return `${m}:${s}`; }
         
+        
+        let typewriterIntervals = [];
+
+        function colorizeCode(code) {
+            return code.replace(/import|from|as|with|open|for|in|print|return|def|if|else|class|async|await/g, '<span class="keyword">$&</span>')
+                       .replace(/".*?"/g, '<span class="string">$&</span>')
+                       .replace(/#.*/g, '<span class="comment">$&</span>')
+                       .replace(/@\w+(\.\w+)*(\(\))?/g, '<span class="decorator">$&</span>');
+        }
+
+        function triggerTypewriter(slideEl) {
+            typewriterIntervals.forEach(clearTimeout);
+            typewriterIntervals = [];
+            const target = slideEl.querySelector('.typewriter-target');
+            if (target) {
+                target.innerHTML = '';
+                const code = target.getAttribute('data-code');
+                let i = 0;
+                let currentHTML = "";
+                let initialDelay = setTimeout(() => {
+                    function typeChar() {
+                        if (i < code.length) {
+                            currentHTML += code.charAt(i);
+                            target.innerHTML = colorizeCode(currentHTML) + '<span style="border-right: 2px solid #3fb950;"></span>';
+                            i++;
+                            typewriterIntervals.push(setTimeout(typeChar, 15));
+                        } else {
+                            target.innerHTML = colorizeCode(currentHTML);
+                        }
+                    }
+                    typeChar();
+                }, 2000);
+                typewriterIntervals.push(initialDelay);
+            }
+        }
+    
         window.onload = () => { 
             sequence.forEach((sec, idx) => { 
                 let div = document.createElement('div'); 
@@ -191,8 +224,8 @@
             if (oldAudio) { oldAudio.pause(); oldAudio.currentTime = 0; } 
             
             currentIndex = index; 
-            document.querySelectorAll('.slide').forEach(el => el.classList.remove('active')); 
-            document.getElementById(`slide-${sequence[currentIndex].id}`).classList.add('active'); 
+            document.querySelectorAll('.slide').forEach(el => { el.classList.remove('active'); el.querySelectorAll('.bullets p').forEach(b => b.classList.remove('visible')); }); 
+            const activeSlide = document.getElementById(`slide-${sequence[currentIndex].id}`); activeSlide.classList.add('active'); triggerTypewriter(activeSlide); 
             document.querySelectorAll('.chapter-item').forEach(el => el.classList.remove('active')); 
             document.getElementById(`chapter-btn-${currentIndex}`).classList.add('active'); 
             
@@ -221,7 +254,17 @@
         }
 
         function saltarASeccion(index) { if (!isCourseStarted) return; isPlaying = true; btnPlayPause.innerText = '⏸'; reproducirSeccion(index); }
-        function iniciarReloj() { updateInterval = setInterval(() => { if (!isPlaying) return; const audio = document.getElementById(`audio-${sequence[currentIndex].id}`); if (audio) { timeCurrent.innerText = formatTime(audio.currentTime); const dur = isNaN(audio.duration) ? 1 : audio.duration; progressFill.style.width = (audio.currentTime / dur * 100) + '%'; } }, 100); }
+        function iniciarReloj() { updateInterval = setInterval(() => { if (!isPlaying) return; const audio = document.getElementById(`audio-${sequence[currentIndex].id}`); if (audio) { timeCurrent.innerText = formatTime(audio.currentTime); const dur = isNaN(audio.duration) ? 1 : audio.duration; progressFill.style.width = (audio.currentTime / dur * 100) + '%'; 
+                    }
+                    const activeSlide = document.getElementById(`slide-${sequence[currentIndex].id}`);
+                    if(activeSlide) {
+                        activeSlide.querySelectorAll('.bullets p').forEach((b, idx) => {
+                            if ((audio ? audio.currentTime : 0) >= (idx * 5 + 2)) {
+                                b.classList.add('visible');
+                            }
+                        });
+                    }
+         }, 100); }
         
         
         document.getElementById('next-chapter-btn').addEventListener('click', () => {

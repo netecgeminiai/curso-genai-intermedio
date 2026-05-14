@@ -28,7 +28,8 @@
         h1.title { color: var(--text-main); font-size: 2.5rem; margin-bottom: 10px; }
         h1.title span { color: var(--text-accent); }
         .bullets { font-size: 1.4rem; line-height: 1.8; color: #8b949e; }
-        .bullets p { margin: 15px 0; display: flex; align-items: flex-start; }
+        .bullets p { margin: 15px 0; display: flex; align-items: flex-start; opacity: 0; transform: translateY(10px); transition: opacity 0.5s, transform 0.5s; }
+        .bullets p.visible { opacity: 1; transform: translateY(0); }
         .bullets p::before { content: '>'; color: var(--accent-green); font-family: var(--code-font); margin-right: 15px; font-weight: bold; }
         .code-block { background-color: #010409; padding: 20px; border-radius: 6px; font-family: var(--code-font); font-size: 1.1rem; color: #e6edf3; width: 100%; box-sizing: border-box; }
         .keyword { color: #ff7b72; }
@@ -77,14 +78,12 @@
                 </div>
             </div>
             <div class="right-panel">
-                <div class="code-block" style="text-align: center;">
-                    <span style="color:#58a6ff;">[ User Query ]</span> <br>⬇<br>
-                    <span style="color:#3fb950;">[ Búsqueda Semántica ]</span> ↔ <span style="color:#8b949e;">[ Knowledge Base ]</span><br>
-                    ⬇<br>
-                    <span style="color:#ff7b72;">[ Prompt + Contexto ]</span><br>
-                    ⬇<br>
-                    <span style="color:#58a6ff;">[ LLM Generation ]</span>
-                </div>
+                <div class="code-block typewriter-target" data-code="[ User Query ] ⬇
+                    [ Búsqueda Semántica ] ↔ [ Knowledge Base ]
+                    ⬇
+                    [ Prompt + Contexto ]
+                    ⬇
+                    [ LLM Generation ]">
             </div>
         </div>
 
@@ -98,15 +97,13 @@
                 </div>
             </div>
             <div class="right-panel">
-                <div class="code-block">
-<span class="comment"># Rey - Hombre + Mujer = Reina</span>
-<span class="keyword">from</span> langchain_openai <span class="keyword">import</span> OpenAIEmbeddings
+                <div class="code-block typewriter-target" data-code="# Rey - Hombre + Mujer = Reina
+from langchain_openai import OpenAIEmbeddings
 
 model = OpenAIEmbeddings()
-vector = model.embed_query(<span class="string">"Hola mundo"</span>)
+vector = model.embed_query(&quot;Hola mundo&quot;)
 
-<span class="comment"># Output: [0.012, -0.045, 0.089, ... 1536 dims]</span>
-                </div>
+# Output: [0.012, -0.045, 0.089, ... 1536 dims]">
             </div>
         </div>
 
@@ -143,24 +140,22 @@ vector = model.embed_query(<span class="string">"Hola mundo"</span>)
                 </div>
             </div>
             <div class="right-panel">
-                <div class="code-block">
-<span class="keyword">from</span> langchain_community.vectorstores <span class="keyword">import</span> Chroma
-<span class="keyword">from</span> langchain_openai <span class="keyword">import</span> ChatOpenAI
-<span class="keyword">from</span> langchain_core.prompts <span class="keyword">import</span> ChatPromptTemplate
+                <div class="code-block typewriter-target" data-code="from langchain_community.vectorstores import Chroma
+from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
 
-retriever = vectorstore.as_retriever(search_kwargs={<span class="string">"k"</span>: <span class="string">3</span>})
+retriever = vectorstore.as_retriever(search_kwargs={&quot;k&quot;: 3})
 
-prompt = ChatPromptTemplate.from_template(<span class="string">"""
+prompt = ChatPromptTemplate.from_template(&quot;&quot;&quot;
 Usa SOLO el siguiente contexto para responder:
 {context}
 Pregunta: {question}
-"""</span>)
+&quot;&quot;&quot;)
 
 rag_chain = (
-    {<span class="string">"context"</span>: retriever, <span class="string">"question"</span>: RunnablePassthrough()}
+    {&quot;context&quot;: retriever, &quot;question&quot;: RunnablePassthrough()}
     | prompt | ChatOpenAI()
-)
-                </div>
+)">
             </div>
         </div>
     </div>
@@ -188,6 +183,42 @@ rag_chain = (
         const btnPlayPause = document.getElementById('btn-play-pause'); const timeCurrent = document.getElementById('time-current'); const progressFill = document.getElementById('progress-fill'); const chapterList = document.getElementById('chapter-list');
         function formatTime(seconds) { if (isNaN(seconds)) return "00:00"; const m = Math.floor(seconds / 60).toString().padStart(2, '0'); const s = Math.floor(seconds % 60).toString().padStart(2, '0'); return `${m}:${s}`; }
         
+        
+        let typewriterIntervals = [];
+
+        function colorizeCode(code) {
+            return code.replace(/import|from|as|with|open|for|in|print|return|def|if|else|class|async|await/g, '<span class="keyword">$&</span>')
+                       .replace(/".*?"/g, '<span class="string">$&</span>')
+                       .replace(/#.*/g, '<span class="comment">$&</span>')
+                       .replace(/@\w+(\.\w+)*(\(\))?/g, '<span class="decorator">$&</span>');
+        }
+
+        function triggerTypewriter(slideEl) {
+            typewriterIntervals.forEach(clearTimeout);
+            typewriterIntervals = [];
+            const target = slideEl.querySelector('.typewriter-target');
+            if (target) {
+                target.innerHTML = '';
+                const code = target.getAttribute('data-code');
+                let i = 0;
+                let currentHTML = "";
+                let initialDelay = setTimeout(() => {
+                    function typeChar() {
+                        if (i < code.length) {
+                            currentHTML += code.charAt(i);
+                            target.innerHTML = colorizeCode(currentHTML) + '<span style="border-right: 2px solid #3fb950;"></span>';
+                            i++;
+                            typewriterIntervals.push(setTimeout(typeChar, 15));
+                        } else {
+                            target.innerHTML = colorizeCode(currentHTML);
+                        }
+                    }
+                    typeChar();
+                }, 2000);
+                typewriterIntervals.push(initialDelay);
+            }
+        }
+    
         window.onload = () => { 
             sequence.forEach((sec, idx) => { 
                 let div = document.createElement('div'); 
@@ -215,8 +246,8 @@ rag_chain = (
             if (oldAudio) { oldAudio.pause(); oldAudio.currentTime = 0; } 
             
             currentIndex = index; 
-            document.querySelectorAll('.slide').forEach(el => el.classList.remove('active')); 
-            document.getElementById(`slide-${sequence[currentIndex].id}`).classList.add('active'); 
+            document.querySelectorAll('.slide').forEach(el => { el.classList.remove('active'); el.querySelectorAll('.bullets p').forEach(b => b.classList.remove('visible')); }); 
+            const activeSlide = document.getElementById(`slide-${sequence[currentIndex].id}`); activeSlide.classList.add('active'); triggerTypewriter(activeSlide); 
             document.querySelectorAll('.chapter-item').forEach(el => el.classList.remove('active')); 
             document.getElementById(`chapter-btn-${currentIndex}`).classList.add('active'); 
             
@@ -245,7 +276,17 @@ rag_chain = (
         }
 
         function saltarASeccion(index) { if (!isCourseStarted) return; isPlaying = true; btnPlayPause.innerText = '⏸'; reproducirSeccion(index); }
-        function iniciarReloj() { updateInterval = setInterval(() => { if (!isPlaying) return; const audio = document.getElementById(`audio-${sequence[currentIndex].id}`); if (audio) { timeCurrent.innerText = formatTime(audio.currentTime); const dur = isNaN(audio.duration) ? 1 : audio.duration; progressFill.style.width = (audio.currentTime / dur * 100) + '%'; } }, 100); }
+        function iniciarReloj() { updateInterval = setInterval(() => { if (!isPlaying) return; const audio = document.getElementById(`audio-${sequence[currentIndex].id}`); if (audio) { timeCurrent.innerText = formatTime(audio.currentTime); const dur = isNaN(audio.duration) ? 1 : audio.duration; progressFill.style.width = (audio.currentTime / dur * 100) + '%'; 
+                    }
+                    const activeSlide = document.getElementById(`slide-${sequence[currentIndex].id}`);
+                    if(activeSlide) {
+                        activeSlide.querySelectorAll('.bullets p').forEach((b, idx) => {
+                            if ((audio ? audio.currentTime : 0) >= (idx * 5 + 2)) {
+                                b.classList.add('visible');
+                            }
+                        });
+                    }
+         }, 100); }
         
         
         document.getElementById('next-chapter-btn').addEventListener('click', () => {

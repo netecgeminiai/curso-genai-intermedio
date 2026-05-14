@@ -73,7 +73,8 @@
         h1.title span { color: var(--text-accent); }
         
         .bullets { font-size: 1.4rem; line-height: 1.8; color: #8b949e; }
-        .bullets p { margin: 15px 0; display: flex; align-items: flex-start; }
+        .bullets p { margin: 15px 0; display: flex; align-items: flex-start; opacity: 0; transform: translateY(10px); transition: opacity 0.5s, transform 0.5s; }
+        .bullets p.visible { opacity: 1; transform: translateY(0); }
         .bullets p::before { content: '>'; color: var(--accent-green); font-family: var(--code-font); margin-right: 15px; font-weight: bold; }
 
         /* Bloques de Código Falsos para la derecha */
@@ -126,15 +127,13 @@
                 </div>
             </div>
             <div class="right-panel">
-                <div class="code-block">
-<span class="comment"># Opción A: Comercial (API)</span>
-<span class="keyword">import</span> openai
-client = openai.OpenAI(api_key=<span class="string">"..."</span>)
+                <div class="code-block typewriter-target" data-code="# Opción A: Comercial (API)
+import openai
+client = openai.OpenAI(api_key=&quot;...&quot;)
 
-<span class="comment"># Opción B: Open Source (Local)</span>
-<span class="keyword">from</span> transformers <span class="keyword">import</span> AutoModel
-model = AutoModel.from_pretrained(<span class="string">"meta-llama/Llama-3"</span>)
-                </div>
+# Opción B: Open Source (Local)
+from transformers import AutoModel
+model = AutoModel.from_pretrained(&quot;meta-llama/Llama-3&quot;)">
             </div>
         </div>
 
@@ -169,12 +168,10 @@ model = AutoModel.from_pretrained(<span class="string">"meta-llama/Llama-3"</spa
                 </div>
             </div>
             <div class="right-panel">
-                <div class="code-block" style="text-align: center;">
-                    <span style="color:#58a6ff;">[ Usuario ]</span> <br>⬇<br>
-                    <span style="color:#3fb950;">[ Backend Orquestador ]</span> ↔ <span style="color:#8b949e;">[ Vector DB ]</span><br>
-                    ⬇<br>
-                    <span style="color:#ff7b72;">[ LLM API (OpenAI/Google) ]</span>
-                </div>
+                <div class="code-block typewriter-target" data-code="[ Usuario ] ⬇
+                    [ Backend Orquestador ] ↔ [ Vector DB ]
+                    ⬇
+                    [ LLM API (OpenAI/Google) ]">
             </div>
         </div>
 
@@ -188,30 +185,28 @@ model = AutoModel.from_pretrained(<span class="string">"meta-llama/Llama-3"</spa
                 </div>
             </div>
             <div class="right-panel">
-                <div class="code-block" style="font-size: 0.95rem; overflow-y: auto;">
-<span class="keyword">from</span> fastapi <span class="keyword">import</span> FastAPI
-<span class="keyword">from</span> pydantic <span class="keyword">import</span> BaseModel
+                <div class="code-block typewriter-target" data-code="from fastapi import FastAPI
+from pydantic import BaseModel
 
-app = FastAPI(title=<span class="string">"GenAI Model Router"</span>)
+app = FastAPI(title=&quot;GenAI Model Router&quot;)
 
-<span class="keyword">class</span> UserRequest(BaseModel):
+class UserRequest(BaseModel):
     prompt: str
 
-<span class="keyword">def</span> route_model(prompt: str):
+def route_model(prompt: str):
     word_count = len(prompt.split())
     
-    <span class="keyword">if</span> word_count > 20:
-        <span class="comment"># Tarea compleja (Alto Costo)</span>
-        <span class="keyword">return</span> call_expensive_model(prompt)
-    <span class="keyword">else</span>:
-        <span class="comment"># Tarea sencilla (Bajo Costo)</span>
-        <span class="keyword">return</span> call_cheap_model(prompt)
+    if word_count > 20:
+        # Tarea compleja (Alto Costo)
+        return call_expensive_model(prompt)
+    else:
+        # Tarea sencilla (Bajo Costo)
+        return call_cheap_model(prompt)
 
-<span class="keyword">@app.post</span>(<span class="string">"/chat"</span>)
-<span class="keyword">async def</span> router(request: UserRequest):
+@app.post(&quot;/chat&quot;)
+async def router(request: UserRequest):
     respuesta_ia = route_model(request.prompt)
-    <span class="keyword">return</span> {<span class="string">"response"</span>: respuesta_ia}
-                </div>
+    return {&quot;response&quot;: respuesta_ia}">
             </div>
         </div>
     </div>
@@ -239,6 +234,42 @@ app = FastAPI(title=<span class="string">"GenAI Model Router"</span>)
         const btnPlayPause = document.getElementById('btn-play-pause'); const timeCurrent = document.getElementById('time-current'); const progressFill = document.getElementById('progress-fill'); const chapterList = document.getElementById('chapter-list');
         function formatTime(seconds) { if (isNaN(seconds)) return "00:00"; const m = Math.floor(seconds / 60).toString().padStart(2, '0'); const s = Math.floor(seconds % 60).toString().padStart(2, '0'); return `${m}:${s}`; }
         
+        
+        let typewriterIntervals = [];
+
+        function colorizeCode(code) {
+            return code.replace(/import|from|as|with|open|for|in|print|return|def|if|else|class|async|await/g, '<span class="keyword">$&</span>')
+                       .replace(/".*?"/g, '<span class="string">$&</span>')
+                       .replace(/#.*/g, '<span class="comment">$&</span>')
+                       .replace(/@\w+(\.\w+)*(\(\))?/g, '<span class="decorator">$&</span>');
+        }
+
+        function triggerTypewriter(slideEl) {
+            typewriterIntervals.forEach(clearTimeout);
+            typewriterIntervals = [];
+            const target = slideEl.querySelector('.typewriter-target');
+            if (target) {
+                target.innerHTML = '';
+                const code = target.getAttribute('data-code');
+                let i = 0;
+                let currentHTML = "";
+                let initialDelay = setTimeout(() => {
+                    function typeChar() {
+                        if (i < code.length) {
+                            currentHTML += code.charAt(i);
+                            target.innerHTML = colorizeCode(currentHTML) + '<span style="border-right: 2px solid #3fb950;"></span>';
+                            i++;
+                            typewriterIntervals.push(setTimeout(typeChar, 15));
+                        } else {
+                            target.innerHTML = colorizeCode(currentHTML);
+                        }
+                    }
+                    typeChar();
+                }, 2000);
+                typewriterIntervals.push(initialDelay);
+            }
+        }
+    
         window.onload = () => { 
             sequence.forEach((sec, idx) => { 
                 let div = document.createElement('div'); 
@@ -266,8 +297,8 @@ app = FastAPI(title=<span class="string">"GenAI Model Router"</span>)
             if (oldAudio) { oldAudio.pause(); oldAudio.currentTime = 0; } 
             
             currentIndex = index; 
-            document.querySelectorAll('.slide').forEach(el => el.classList.remove('active')); 
-            document.getElementById(`slide-${sequence[currentIndex].id}`).classList.add('active'); 
+            document.querySelectorAll('.slide').forEach(el => { el.classList.remove('active'); el.querySelectorAll('.bullets p').forEach(b => b.classList.remove('visible')); }); 
+            const activeSlide = document.getElementById(`slide-${sequence[currentIndex].id}`); activeSlide.classList.add('active'); triggerTypewriter(activeSlide); 
             document.querySelectorAll('.chapter-item').forEach(el => el.classList.remove('active')); 
             document.getElementById(`chapter-btn-${currentIndex}`).classList.add('active'); 
             
@@ -300,7 +331,17 @@ app = FastAPI(title=<span class="string">"GenAI Model Router"</span>)
         }
 
         function saltarASeccion(index) { if (!isCourseStarted) return; isPlaying = true; btnPlayPause.innerText = '⏸'; reproducirSeccion(index); }
-        function iniciarReloj() { updateInterval = setInterval(() => { if (!isPlaying) return; const audio = document.getElementById(`audio-${sequence[currentIndex].id}`); if (audio) { timeCurrent.innerText = formatTime(audio.currentTime); const dur = isNaN(audio.duration) ? 1 : audio.duration; progressFill.style.width = (audio.currentTime / dur * 100) + '%'; } }, 100); }
+        function iniciarReloj() { updateInterval = setInterval(() => { if (!isPlaying) return; const audio = document.getElementById(`audio-${sequence[currentIndex].id}`); if (audio) { timeCurrent.innerText = formatTime(audio.currentTime); const dur = isNaN(audio.duration) ? 1 : audio.duration; progressFill.style.width = (audio.currentTime / dur * 100) + '%'; 
+                    }
+                    const activeSlide = document.getElementById(`slide-${sequence[currentIndex].id}`);
+                    if(activeSlide) {
+                        activeSlide.querySelectorAll('.bullets p').forEach((b, idx) => {
+                            if ((audio ? audio.currentTime : 0) >= (idx * 5 + 2)) {
+                                b.classList.add('visible');
+                            }
+                        });
+                    }
+         }, 100); }
         
         document.getElementById('next-chapter-btn').addEventListener('click', () => {
             window.location.href = 'curso_genai_cap2.html';
