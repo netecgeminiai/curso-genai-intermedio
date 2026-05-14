@@ -330,8 +330,23 @@ async def router(request: UserRequest):
             } 
         }
 
+        
+        window.seek = function(event) {
+            if (!isCourseStarted) return;
+            const audio = document.getElementById(`audio-${sequence[currentIndex].id}`);
+            if (!audio || isNaN(audio.duration)) return;
+            const progressBar = document.getElementById('progress-bar');
+            const rect = progressBar.getBoundingClientRect();
+            const clickX = event.clientX - rect.left;
+            const percent = Math.max(0, Math.min(1, clickX / rect.width));
+            audio.currentTime = percent * audio.duration;
+            // Update UI instantly
+            document.getElementById('progress-fill').style.width = (percent * 100) + '%';
+            document.getElementById('time-current').innerText = formatTime(audio.currentTime);
+        };
+    
         function saltarASeccion(index) { if (!isCourseStarted) return; isPlaying = true; btnPlayPause.innerText = '⏸'; reproducirSeccion(index); }
-        function iniciarReloj() { updateInterval = setInterval(() => { if (!isPlaying) return; const audio = document.getElementById(`audio-${sequence[currentIndex].id}`); if (audio) { timeCurrent.innerText = formatTime(audio.currentTime); const dur = isNaN(audio.duration) ? 1 : audio.duration; progressFill.style.width = (audio.currentTime / dur * 100) + '%'; 
+        function iniciarReloj() { updateInterval = setInterval(() => { if (!isPlaying) return; const audio = document.getElementById(`audio-${sequence[currentIndex].id}`); if (audio) { timeCurrent.innerText = formatTime(audio.currentTime); document.getElementById('time-total').innerText = formatTime(audio.duration); const dur = isNaN(audio.duration) ? 1 : audio.duration; progressFill.style.width = (audio.currentTime / dur * 100) + '%'; 
                     }
                     const activeSlide = document.getElementById(`slide-${sequence[currentIndex].id}`);
                     if(activeSlide) {
