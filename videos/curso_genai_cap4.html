@@ -145,8 +145,8 @@
 
     
     <div id="next-chapter-overlay" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(13, 17, 23, 0.9); z-index: 300; flex-direction: column; align-items: center; justify-content: center;">
-        <h2 style="color: #c9d1d9; font-size: 2.5rem; font-family: 'Courier New', Courier, monospace;">¡Curso GenAI Completado! 🏆</h2>
-        <button id="next-chapter-btn" style="margin-top: 20px; padding: 15px 40px; font-size: 1.5rem; background-color: #3fb950; color: white; border: none; border-radius: 8px; cursor: pointer; transition: transform 0.2s;">Finalizar Curso 🎓</button>
+        <h2 style="color: #c9d1d9; font-size: 2.5rem; font-family: 'Courier New', Courier, monospace;">Capítulo 4 Completado ✅</h2>
+        <button id="next-chapter-btn" style="margin-top: 20px; padding: 15px 40px; font-size: 1.5rem; background-color: #3fb950; color: white; border: none; border-radius: 8px; cursor: pointer; transition: transform 0.2s;">Siguiente Capítulo ➡</button>
     </div>
     
     <audio id="audio-01_orquestacion" src="cap4_01_orquestacion.mp3" preload="metadata"></audio>
@@ -225,7 +225,7 @@
         
         
         document.getElementById('next-chapter-btn').addEventListener('click', () => {
-            window.location.href = '#';
+            window.location.href = 'curso_genai_cap5.html';
         });
         
         btnPlayPause.addEventListener('click', () => { if (!isCourseStarted) return; const audio = document.getElementById(`audio-${sequence[currentIndex].id}`); if (currentIndex >= sequence.length - 1 && audio && audio.ended) { isPlaying = true; btnPlayPause.innerText = '⏸'; saltarASeccion(0); return; } if (isPlaying) { if(audio) audio.pause(); isPlaying = false; btnPlayPause.innerText = '▶'; } else { if(audio) audio.play(); isPlaying = true; btnPlayPause.innerText = '⏸'; } });
