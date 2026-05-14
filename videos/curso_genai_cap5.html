@@ -46,6 +46,14 @@
         #progress-bar { width: 400px; height: 4px; background-color: #30363d; border-radius: 2px; position: relative; cursor: pointer; }
         #progress-fill { height: 100%; width: 0%; background-color: var(--text-accent); transition: width 0.1s linear; box-shadow: 0 0 10px var(--text-accent); }
         .time-display { font-size: 0.85rem; color: #8b949e; font-family: var(--code-font); }
+    
+        /* Transcript Box */
+        .transcript-toggle { position: absolute; bottom: 80px; left: 20px; background-color: var(--panel-bg); color: var(--text-main); border: 1px solid var(--border-color); padding: 8px 15px; border-radius: 6px; cursor: pointer; z-index: 200; font-family: var(--code-font); font-size: 0.9rem; transition: all 0.2s; opacity: 0; }
+        .transcript-toggle:hover { background-color: #21262d; color: var(--text-accent); border-color: var(--text-accent); }
+        .transcript-box { position: absolute; bottom: 120px; left: 20px; width: 45%; max-height: 25vh; background-color: rgba(22, 27, 34, 0.95); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; z-index: 200; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 1.1rem; line-height: 1.6; color: #e6edf3; overflow-y: auto; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
+        .transcript-word { opacity: 0.4; transition: opacity 0.1s; }
+        .transcript-word.read { opacity: 1; color: #fff; text-shadow: 0 0 2px rgba(255,255,255,0.3); }
+
     </style>
 </head>
 <body>
@@ -61,7 +69,12 @@
             <div id="chapter-list"></div>
         </div>
         
-        <div id="controls-container">
+        
+    <button id="btn-transcript" class="transcript-toggle">💬 Ver Transcripción</button>
+    <div id="transcript-box" class="transcript-box" style="display: none;"></div>
+    
+    <div id="controls-container">
+    
             <button id="btn-prev" class="control-btn" title="Anterior">⏮</button>
             <button id="btn-play-pause" class="control-btn" title="Pausar">⏸</button>
             <span id="time-current" class="time-display">00:00</span>
@@ -71,7 +84,7 @@
         </div>
 
         <!-- SLIDES -->
-        <div id="slide-01_finetuning_vs_rag" class="slide">
+        <div id="slide-01_finetuning_vs_rag" class="slide" data-transcript="No podemos ejecutar una API de inteligencia artificial directamente en un servidor virtual usando python run. Si el tráfico aumenta, el servidor colapsará. La solución estándar en la industria es la contenedorización con Docker. Docker empaca nuestro código de Python, sus librerías como LangChain o FastAPI, y el sistema operativo base, en un paquete inmutable que correrá exactamente igual en tu computadora que en los servidores de Amazon AWS o Microsoft Azure." data-transcript="Un workflow tradicional es determinista: Paso A, luego Paso B. Un Agente es autónomo. Le damos un objetivo, un set de herramientas y él decide en qué orden usarlas mediante el bucle de Razonamiento y Acción o ReAct." data-transcript="A menudo surge la duda: ¿Cuándo usar RAG y cuándo Fine-Tuning? RAG es para inyectar conocimientos nuevos o datos privados de la empresa. El Fine-Tuning no es para aprender datos nuevos, sino para enseñar al modelo un comportamiento o tono específico. Si quieres que la IA conteste como un pirata o devuelva jsons perfectos siempre, haces Fine-Tuning. Si quieres que sepa el saldo bancario del cliente, usas RAG." data-transcript="Orquestación. Escribir RAG desde cero es propenso a errores. Necesitamos orquestadores. Actualmente la industria se divide en dos grandes frameworks: LangChain, que es de propósito general y excelente para construir Agentes y flujos conversacionales, y LlamaIndex, que es el rey absoluto cuando se trata de indexar y buscar información dentro de cientos de documentos complejos." data-transcript="¿Qué es RAG? Retrieval Augmented Generation o Generación Aumentada por Recuperación. Los modelos de lenguaje están congelados en el tiempo y no conocen los datos privados de tu empresa. El patrón RAG resuelve esto buscando primero en tus documentos, y luego pasándole esa información al modelo en su prompt de contexto, convirtiéndolo en un estudiante rindiendo un examen a libro abierto." data-transcript="Integrando Eyy Pi Ais. Aquí dejamos de usar interfaces web y pasamos al código. Usaremos los ES DI KEIS oficiales para interactuar con los modelos. Regla de oro en producción: NUNCA quemes tu llave de Eyy pi Ai en el código fuente, utiliza variables de entorno. Además, controlaremos el comportamiento usando la temperatura. Una temperatura de cero nos dará respuestas deterministas y robóticas, perfectas para código. Una temperatura cercana a uno, nos dará respuestas creativas." data-transcript="De Usuario Avanzado a Arquitecto Yen Eyy Ai. En este primer módulo, cambiaremos nuestra mentalidad. Ya no somos simples usuarios que chatean con la Inteligencia Artificial. Ahora, tomamos decisiones técnicas sobre modelos, costos y arquitecturas. Por ejemplo, debemos saber cuándo usar un modelo comercial cerrado como Yipiti 4 de Oupen Ei Ai, y cuándo es mejor implementar un modelo de código abierto como Llama, el cual podemos alojar en nuestros propios servidores para garantizar privacidad total. Además, utilizaremos plataformas como Hugging Face, que funciona como el Yit Juv de los modelos de Inteligencia Artificial.">
             <div class="left-panel">
                 <h1 class="title">1. Fine-Tuning vs <span>RAG</span></h1>
                 <div class="bullets">
@@ -92,7 +105,7 @@
             </div>
         </div>
 
-        <div id="slide-02_datasets_jsonl" class="slide">
+        <div id="slide-02_datasets_jsonl" class="slide" data-transcript="Cuando tu aplicación sale a internet, los ataques son inevitables. El más común en Inteligencia Artificial Generativa es el Prompt Injection, donde un usuario malicioso intenta engañar a tu modelo para que ignore sus instrucciones y ejecute un ataque. Además, jamás debes incluir tus llaves de API en el código fuente ni en el Dockerfile. Siempre debemos usar inyección de secretos mediante variables de entorno." data-transcript="El Model Context Protocol o MCP es la revolución. Antes, teníamos que programar integraciones personalizadas para cada modelo y base de datos. MCP estandariza cómo los asistentes de IA, como Claude Desktop o Cursor, se conectan a fuentes de datos locales, como tus archivos, bases de datos o APIs de Slack, de forma segura. La arquitectura es cliente-servidor. Tu agente es el cliente. Él no sabe de bases de datos. Simplemente le pide al Servidor MCP local: Búscame esto. El servidor MCP, que tú programas en Python, tiene los permisos y devuelve el contexto limpio." data-transcript="Para hacer Fine-Tuning, necesitamos ejemplos. Muchos. Y el formato estándar de la industria es JSONL. Cada línea del archivo es un objeto json válido e independiente, que contiene el rol del sistema, la pregunta del usuario y la respuesta ideal que el asistente debe aprender a imitar." data-transcript="Agentes y Herramientas. A diferencia del RAG, que solo lee información, los Agentes pueden tomar acciones en el mundo real. Utilizan un bucle llamado ReAct: Piensan, actúan, observan el resultado, y repiten. Podemos conectar funciones de Python directamente al cerebro del Agente, permitiéndole interactuar con APIS externas o bases de datos como si fuera un humano." data-transcript="Para que la máquina pueda buscar conceptos, utilizamos Embeddings. Un Embedding es la traducción de un texto o concepto humano, a un vector matemático de muchas dimensiones. Esto permite que una Base de Datos Vectorial entienda que 'reembolso' y 'devolución de dinero' son conceptos cercanos matemáticamente, aunque usen palabras distintas." data-transcript="Errores y Límites. ¿Qué pasa cuando el modelo se niega a devolver un Jey son y responde en texto plano? Tu aplicación entera colapsará. Para evitarlo, usamos Pydantic, que obliga a la Inteligencia Artificial a adherirse a una estructura estricta. Además, en la nube los límites de tasa o 'Rate Limits' son comunes. Usaremos la técnica de retroceso exponencial, para reintentar automáticamente la solicitud sin saturar el servidor." data-transcript="Analicemos la anatomía de costos. En este mundo, pagamos por Tokens, no por uso. Un Token es aproximadamente una sílaba o un fragmento de código. Debemos balancear tres cosas en producción: latencia, la ventana de contexto, y el precio. Un modelo muy poderoso será costoso y lento, mientras que un modelo pequeño será rápido y barato, pero con menos razonamiento.">
             <div class="left-panel">
                 <h1 class="title">2. Datasets <span>JSONL</span></h1>
                 <div class="bullets">
@@ -110,7 +123,7 @@
             </div>
         </div>
 
-        <div id="slide-03_lab_preparacion" class="slide">
+        <div id="slide-03_lab_preparacion" class="slide" data-transcript="Para nuestro laboratorio final, tomaremos la API que construimos en el Capítulo 1, el Router de Modelos, y le escribiremos un Dockerfile profesional de grado productivo. Este archivo utilizará una imagen ligera de Linux, instalará las dependencias de manera optimizada y expondrá el puerto 8000. A continuación, escribimos el código del Dockerfile para lograr esto. Observa la pantalla." data-transcript="En nuestro laboratorio, vamos a construir un Servidor MCP básico en Python. Usaremos el SDK oficial para crear herramientas que el agente pueda descubrir e invocar dinámicamente. A continuación, escribimos el código en Python para lograr esto. Observa la pantalla." data-transcript="Vamos a ensuciarnos las manos en este laboratorio. Tomaremos un archivo CSV crudo con preguntas y respuestas históricas de soporte técnico, y usaremos Python para convertirlo al formato estricto JSONL que exige la API de Oupen Ei Ai para entrenar un nuevo modelo. A continuación, escribimos el código en Python para lograr esto. Observa la pantalla." data-transcript="Laboratorio: Agente de Base de Datos. Vamos a construir un agente autónomo al cual le daremos acceso directo a una base de datos Sigüel Lite local. Definiremos una herramienta en Python con comentarios estrictos, y dejaremos que el Agente traduzca nuestras peticiones en lenguaje natural a código Síguel, ejecutándolo por su cuenta para respondernos. A continuación, escribimos el código en Python para lograr esto. Observa la pantalla." data-transcript="No podemos enviar un manual en formato PI DI EF de cien páginas completo al modelo. Usamos estrategias de fragmentación o Chunking. Dividiremos el texto en pequeños párrafos que preserven el contexto. Una buena práctica es permitir que los fragmentos se superpongan un poco, el llamado Overlapping, para no cortar oraciones a la mitad." data-transcript="La Inteligencia Artificial como asistente de desarrollo. Herramientas como GitHub Copilot, Cursor, o Claude, son excelentes copilotos. Nos ayudan a refactorizar código heredado, escribir pruebas unitarias o traducir lenguajes. Pero ten cuidado con las alucinaciones: la Inteligencia Artificial a veces inventa librerías que no existen, introduciendo dependencias fantasma. La regla es: La Inteligencia Artificial escribe, el humano audita." data-transcript="Una arquitectura moderna de Yen Eyy Ai requiere más que solo llamar a un modelo. Necesitamos un Backend, típicamente en Python con Fast Ei Pi Ai, que actúe como escudo. Este Backend gestionará la seguridad, validará las entradas de los usuarios para evitar inyecciones de código, y conectará a la Inteligencia Artificial con bases de datos externas o agentes de memoria antes de devolver la respuesta.">
             <div class="left-panel">
                 <h1 class="title">3. Lab: Preparación de <span>Datos</span></h1>
                 <div class="bullets">
@@ -179,7 +192,7 @@ print("JSONL generado exitosamente.")'>
                 document.getElementById('cortinilla').style.opacity = '0'; 
                 setTimeout(() => { 
                     document.getElementById('cortinilla').style.display = 'none'; 
-                    document.getElementById('controls-container').style.opacity = '1'; 
+                    document.getElementById('controls-container').style.opacity = '1'; document.getElementById('btn-transcript').style.opacity = '1'; 
                     document.getElementById('chapters-menu').style.opacity = '1'; 
                     isCourseStarted = true; isPlaying = true; reproducirSeccion(0); iniciarReloj(); 
                 }, 1000); 
@@ -223,6 +236,55 @@ print("JSONL generado exitosamente.")'>
             }
         }
 
+        
+        // Transcript Logic
+        let currentTranscriptWords = [];
+        const btnTranscript = document.getElementById('btn-transcript');
+        const boxTranscript = document.getElementById('transcript-box');
+        
+        btnTranscript.addEventListener('click', () => {
+            if (boxTranscript.style.display === 'none') {
+                boxTranscript.style.display = 'block';
+                btnTranscript.innerText = '💬 Ocultar Transcripción';
+            } else {
+                boxTranscript.style.display = 'none';
+                btnTranscript.innerText = '💬 Ver Transcripción';
+            }
+        });
+
+        function renderTranscript(text) {
+            boxTranscript.innerHTML = '';
+            currentTranscriptWords = text.split(' ').map(word => {
+                const span = document.createElement('span');
+                span.className = 'transcript-word';
+                span.innerText = word + ' ';
+                boxTranscript.appendChild(span);
+                return span;
+            });
+        }
+        
+        function updateTranscriptHighlight(audio) {
+            if (!audio || !currentTranscriptWords.length || boxTranscript.style.display === 'none') return;
+            const progress = audio.currentTime / (isNaN(audio.duration) ? 1 : audio.duration);
+            const wordsToHighlight = Math.floor(progress * currentTranscriptWords.length);
+            
+            currentTranscriptWords.forEach((span, idx) => {
+                if (idx < wordsToHighlight) {
+                    span.classList.add('read');
+                } else {
+                    span.classList.remove('read');
+                }
+            });
+            
+            // Auto-scroll
+            if (wordsToHighlight > 0 && wordsToHighlight < currentTranscriptWords.length) {
+                const activeSpan = currentTranscriptWords[wordsToHighlight-1];
+                if (activeSpan.offsetTop > boxTranscript.scrollTop + boxTranscript.clientHeight - 40) {
+                    boxTranscript.scrollTop = activeSpan.offsetTop - boxTranscript.clientHeight / 2;
+                }
+            }
+        }
+
         function reproducirSeccion(index) { 
             if (index < 0 || index >= sequence.length) return; 
             const oldAudio = document.getElementById(`audio-${sequence[currentIndex].id}`); 
@@ -240,7 +302,14 @@ print("JSONL generado exitosamente.")'>
             document.querySelectorAll('.chapter-item').forEach(el => el.classList.remove('active')); 
             document.getElementById(`chapter-btn-${currentIndex}`).classList.add('active'); 
             
+            
             triggerTypewriter(activeSlide);
+            if(activeSlide.getAttribute('data-transcript')) {
+                renderTranscript(activeSlide.getAttribute('data-transcript'));
+            } else {
+                boxTranscript.innerHTML = '<em>Guion no disponible.</em>';
+            }
+        
             
             const currentAudio = document.getElementById(`audio-${sequence[currentIndex].id}`); 
             if (currentAudio) { 
@@ -298,7 +367,7 @@ print("JSONL generado exitosamente.")'>
                     timeCurrent.innerText = formatTime(audio.currentTime); document.getElementById('time-total').innerText = formatTime(audio.duration); 
                     const dur = isNaN(audio.duration) ? 1 : audio.duration; 
                     progressFill.style.width = (audio.currentTime / dur * 100) + '%'; 
-                    currTime = audio.currentTime;
+                    currTime = audio.currentTime; updateTranscriptHighlight(audio);
                 } else {
                     // Si no hay audio, estimamos para las animaciones
                     currTime = Date.now() / 1000 % 10; 
