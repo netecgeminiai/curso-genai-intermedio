@@ -52,7 +52,7 @@
         </div>
 
         <div id="chapters-menu">
-            <h3><span style="color:#3fb950;">~/</span> Capítulo_2</h3>
+            <h3><span style="color:#3fb950;">~/</span> Capítulo 2:<br>APIs y Errores</h3>
             <div id="chapter-list"></div>
         </div>
         
@@ -178,6 +178,12 @@ response = client.chat.completions.create(
         </div>
     </div>
 
+    
+    <div id="next-chapter-overlay" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(13, 17, 23, 0.9); z-index: 300; flex-direction: column; align-items: center; justify-content: center;">
+        <h2 style="color: #c9d1d9; font-size: 2.5rem; font-family: 'Courier New', Courier, monospace;">Capítulo 2 Completado ✅</h2>
+        <button id="next-chapter-btn" style="margin-top: 20px; padding: 15px 40px; font-size: 1.5rem; background-color: #3fb950; color: white; border: none; border-radius: 8px; cursor: pointer; transition: transform 0.2s;">Siguiente Capítulo ➡</button>
+    </div>
+    
     <audio id="audio-01_apis" src="cap2_01_apis.mp3" preload="metadata"></audio>
     <audio id="audio-02_errores" src="cap2_02_errores.mp3" preload="metadata"></audio>
     <audio id="audio-03_asistente" src="cap2_03_asistente.mp3" preload="metadata"></audio>
@@ -237,15 +243,27 @@ response = client.chat.completions.create(
                 } 
                 currentAudio.onended = () => { 
                     if (currentIndex + 1 < sequence.length) { reproducirSeccion(currentIndex + 1); } 
-                    else { btnPlayPause.innerText = '🔁'; isPlaying = false; } 
+                    else { btnPlayPause.innerText = '🔁'; isPlaying = false; document.getElementById('next-chapter-overlay').style.display = 'flex'; } 
                 }; 
             } else { 
-                setTimeout(() => { if (isPlaying && currentIndex + 1 < sequence.length) reproducirSeccion(currentIndex + 1); }, 5000); 
+                setTimeout(() => { 
+                    if (isPlaying && currentIndex + 1 < sequence.length) {
+                        reproducirSeccion(currentIndex + 1); 
+                    } else if (isPlaying && currentIndex + 1 >= sequence.length) {
+                        btnPlayPause.innerText = '🔁'; isPlaying = false;
+                        document.getElementById('next-chapter-overlay').style.display = 'flex';
+                    }
+                }, 5000); 
             } 
         }
 
         function saltarASeccion(index) { if (!isCourseStarted) return; isPlaying = true; btnPlayPause.innerText = '⏸'; reproducirSeccion(index); }
         function iniciarReloj() { updateInterval = setInterval(() => { if (!isPlaying) return; const audio = document.getElementById(`audio-${sequence[currentIndex].id}`); if (audio) { timeCurrent.innerText = formatTime(audio.currentTime); const dur = isNaN(audio.duration) ? 1 : audio.duration; progressFill.style.width = (audio.currentTime / dur * 100) + '%'; } }, 100); }
+        
+        
+        document.getElementById('next-chapter-btn').addEventListener('click', () => {
+            window.location.href = 'curso_genai_cap3.html';
+        });
         
         btnPlayPause.addEventListener('click', () => { if (!isCourseStarted) return; const audio = document.getElementById(`audio-${sequence[currentIndex].id}`); if (currentIndex >= sequence.length - 1 && audio && audio.ended) { isPlaying = true; btnPlayPause.innerText = '⏸'; saltarASeccion(0); return; } if (isPlaying) { if(audio) audio.pause(); isPlaying = false; btnPlayPause.innerText = '▶'; } else { if(audio) audio.play(); isPlaying = true; btnPlayPause.innerText = '⏸'; } });
         document.getElementById('btn-next').addEventListener('click', () => { if (!isCourseStarted) return; if (currentIndex + 1 < sequence.length) saltarASeccion(currentIndex + 1); });
